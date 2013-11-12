@@ -8,6 +8,11 @@ include /boot/loader.4th
 \ NOTE: Change to `initialize' if you enable the below boot menu
 start
 
+\ Load in any local forth files
+only forth also support-functions
+s" /boot/loader.rc.local" source-if-exists
+only forth also
+
 \ Tests for password -- executes autoboot first if a password was defined
 check-password
 
