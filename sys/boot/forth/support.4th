@@ -861,6 +861,40 @@ only forth also support-functions definitions
   throw
 ;
 
+\ Does the file exist?
+: file-exists? ( c-addr/u -- bool )
+  O_RDONLY fopen \ open file
+  dup \ save a copy to not leak
+  -1 <> if
+    fclose true
+  else
+    drop false
+  then
+;
+
+\ Source file as code if it exists.
+: source-if-exists ( c-addr/u -- ) 
+
+  2dup file-exists? if
+    \ If file exists then prepend "include" to it
+
+    \ first allocate a string, top of stack is strlen of
+    \ the filename, so just add a comfortable 15 bytes to it.
+    dup 15 +
+    allocate if ENOMEM throw then
+    0
+
+    s" include " strcat
+    \ grab the original string up so we can strcat
+    3 roll 3 roll 
+    strcat
+
+    \ evaluate " include file"
+    2dup evaluate
+    drop free
+  then
+;
+
 : print_line line_buffer strtype cr ;
 
 : print_syntax_error
