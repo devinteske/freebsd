@@ -864,7 +864,7 @@ only forth also support-functions definitions
 \ Does the file exist?
 : file-exists? ( c-addr/u -- bool )
   O_RDONLY fopen \ open file
-  dup \ save a copy to not leak
+  dup \ save a copy to not leak the fd for fclose below.
   -1 <> if
     fclose true
   else
@@ -873,26 +873,27 @@ only forth also support-functions definitions
 ;
 
 \ Source file as code if it exists.
-: source-if-exists ( c-addr/u -- ) 
-
-  2dup file-exists? if
-    \ If file exists then prepend "include" to it
-
-    \ first allocate a string, top of stack is strlen of
-    \ the filename, so just add a comfortable 15 bytes to it.
-    dup 15 +
-    allocate if ENOMEM throw then
-    0
-
-    s" include " strcat
-    \ grab the original string up so we can strcat
-    3 roll 3 roll 
-    strcat
-
-    \ evaluate " include file"
-    2dup evaluate
-    drop free
+: include-if-exists ( c-addr/u -- ) 
+  2dup file-exists? false = if
+    2drop
+    exit
   then
+  \ If file exists then prepend "include" to it
+
+  \ first allocate a string, top of stack is strlen of
+  \ the filename, so just add a comfortable 15 bytes to it.
+  dup 9 +
+  allocate if ENOMEM throw then
+  0
+
+  s" include " strcat
+  \ grab the original string up so we can strcat
+  2swap
+  strcat
+
+  \ evaluate " include file"
+  2dup evaluate
+  drop free
 ;
 
 : print_line line_buffer strtype cr ;

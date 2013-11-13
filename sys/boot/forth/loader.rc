@@ -10,7 +10,7 @@ start
 
 \ Load in any local forth files
 only forth also support-functions
-s" /boot/loader.rc.local" source-if-exists
+s" /boot/loader.rc.local" include-if-exists
 only forth also
 
 \ Tests for password -- executes autoboot first if a password was defined
